@@ -44,3 +44,85 @@ You don’t have to ever use `eject`. The curated feature set is suitable for sm
 You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
 
 To learn React, check out the [React documentation](https://reactjs.org/).
+
+---
+
+## Cài thư viện blockchain cần thiết
+
+```js
+npm install ethers
+```
+
+- Giải thích:
+  - ethers là thư viện phổ biến dùng để kết nối tới Ethereum blockchain (Metamask, smart contract, v.v.)
+
+## Kết nối với ví Metamask (Ethereum)
+
+- Tạo file src/blockchain/connectWallet.ts:
+
+```ts
+import { ethers } from "ethers";
+
+export const connectWallet = async () => {
+  if (window.ethereum) {
+    try {
+      const provider = new ethers.BrowserProvider(window.ethereum);
+      const accounts = await window.ethereum.request({
+        method: "eth_requestAccounts",
+      });
+      const signer = await provider.getSigner();
+      return {
+        provider,
+        signer,
+        account: accounts[0],
+      };
+    } catch (err) {
+      console.error("Lỗi kết nối ví:", err);
+    }
+  } else {
+    alert("Vui lòng cài đặt MetaMask!");
+  }
+};
+```
+
+## Gọi hàm kết nối trong App
+
+- Mở file src/App.tsx và sửa như sau:
+
+```ts
+import React, { useState } from "react";
+import "./App.css";
+import { connectWallet } from "./blockchain/connectWallet";
+
+function App() {
+  const [account, setAccount] = useState<string | null>(null);
+
+  const handleConnect = async () => {
+    const result = await connectWallet();
+    if (result) {
+      setAccount(result.account);
+    }
+  };
+
+  return (
+    <div className="App">
+      <h1>DApp React + TypeScript</h1>
+      <button onClick={handleConnect}>
+        {account ? `Đã kết nối: ${account}` : "Kết nối ví"}
+      </button>
+    </div>
+  );
+}
+
+export default App;
+```
+
+## Chạy thử
+
+```js
+npm start
+```
+
+- Mở trình duyệt và truy cập http://localhost:3000
+- Nếu bạn đã cài MetaMask, app sẽ hiện nút "Kết nối ví" → bấm và chấp nhận kết nối -> Kết nối thành công nếu đã cài extension ví Metamask .
+- Nếu chưa cài sẽ báo "Vui lòng cài đặt Metamask" .
